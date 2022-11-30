@@ -1,0 +1,11 @@
+LICENSE
+README.md
+pyproject.toml
+setup.cfg
+src/tse_option/__init__.py
+src/tse_option/example.py
+src/tse_option.egg-info/PKG-INFO
+src/tse_option.egg-info/SOURCES.txt
+src/tse_option.egg-info/dependency_links.txt
+src/tse_option.egg-info/requires.txt
+src/tse_option.egg-info/top_level.txt

@@ -1,0 +1,12 @@
+numpy
+pandas
+scipy
+requests
+finpy_tse
+
+[dev]
+numpy
+pandas
+scipy
+requests
+finpy_tse
