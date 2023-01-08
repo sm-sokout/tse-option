@@ -27,7 +27,7 @@ import tse_option as tso
 
 #### دریافت داده های مربوط به تمام اختیار معامله های موجود روی یک سهم خاص
 ```python
-df = pricing_based_on_stock(stock_name="خودرو", trading_days=100, IV=False, leverage=True, P_BSM=False, sort="Maturity")
+df = tso.pricing_based_on_stock(stock_name="خودرو", trading_days=100, IV=False, leverage=True, P_BSM=False, sort="Maturity")
 ```
 
 *stock_name:*  نماد سهم مورد نظر
