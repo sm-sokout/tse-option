@@ -2,11 +2,11 @@ numpy
 pandas
 scipy
 requests
-finpy_tse
+jalali_pandas
 
 [dev]
 numpy
 pandas
 scipy
 requests
-finpy_tse
+jalali_pandas

@@ -6,11 +6,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tse_option"
-version = "0.1.0.0"
+version = "0.1.1.0"
 authors = [
   { name="Seyed Mohammad Sokout", email="sm.sokut@gmail.com" },
 ]
-description = "Pricing option based on BSM"
+description = "Option pricing in Tehran Stock Exchange (TSE) and Iran Farabourse (IFB)"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
@@ -25,12 +25,12 @@ dependencies = [
     "pandas",
     "scipy",
     "requests",
-    "finpy_tse"
+    "jalali_pandas"
 ]
 
 
 [project.optional-dependencies]
-dev = ["numpy", "pandas", "scipy", "requests", "finpy_tse"]
+dev = ["numpy", "pandas", "scipy", "requests", "jalali_pandas"]
 
 [project.urls]
-"Homepage" = "https://github.com/sm-sokout"
+"Homepage" = "https://github.com/sm-sokout/tse-option"
