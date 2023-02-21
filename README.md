@@ -1,6 +1,10 @@
 # tse_option
 
 
+[![Downloads](https://static.pepy.tech/personalized-badge/tse-option?period=total&units=international_system&left_color=grey&right_color=red&left_text=TotalDownloads)](https://pepy.tech/project/tse-option)
+[![Downloads](https://static.pepy.tech/personalized-badge/tse-option?period=month&units=international_system&left_color=grey&right_color=orange&left_text=Downloads/month)](https://pepy.tech/project/tse-option)
+![Downloads](https://img.shields.io/badge/version-0.1.1.0-brightgreen)
+
 
 این پکیج جهت بررسی و قیمت گذاری اوراق اختیار معامله موجود در بورس اوراق بهادار تهران و فرابورس ایران ایجاد شده است. لازم به یادآوری است که در این ماژول از مدل ارائه شده توسط بلک-شولز-مرتون در سال 1973 برای قیمت گذاری اختیار معامله استفاده شد است. سعی بر آن است که در نسخه های بعدی سایر مدل های قیمت گذاری نیز اضافه شوند.
 
