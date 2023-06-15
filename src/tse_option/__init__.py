@@ -76,7 +76,7 @@ def risk_free_interest_rate():
 
 def stock_id(stock_name):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    url = f"http://www.tsetmc.com/tsev2/data/search.aspx?skey={stock_name}"
+    url = f"http://old.tsetmc.com/tsev2/data/search.aspx?skey={stock_name}"
     html = rq.get(url, headers=headers).text
     info = html.split(";")
     for i in info:
@@ -94,7 +94,7 @@ def stock_price(stock_name):
     id = stock_id(stock_name)
     if id is None:
         raise NameError("This symbol does not exist. Please enter the symbol correctly!")
-    url = "http://www.tsetmc.com/tsev2/data/instinfofast.aspx?i="+id+"&c=34"
+    url = "http://old.tsetmc.com/tsev2/data/instinfofast.aspx?i="+id+"&c=34"
     tsetmc = rq.get(url)
     return int(tsetmc.text.split(";")[0].split(",")[2])
 
@@ -132,19 +132,54 @@ def farabourse_options(symbol, stock=True):
 #----------------------------------------
 
 
-def download_history(symbol, j_date=False, start=None, end=None, adjust_price=False, drop_unadjusted=False):
+def download_history(symbols, j_date=False, start=None, end=None, adjust_price=False, drop_unadjusted=False):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    if "ی" in symbol:
-        symbol = symbol.replace("ی","ي")
-    id = stock_id(symbol)
-    url = 'http://www.tsetmc.com/tsev2/data/Export-txt.aspx?t=i&a=1&b=0&i=' + id
-    html=rq.get(url,headers=headers).content
-    df=pd.read_csv(io.StringIO(html.decode("utf-8")),index_col="<DTYYYYMMDD>",parse_dates=True)[::-1]
-    df=df.rename(columns={"<OPEN>": "Yesterday", "<CLOSE>": "Close","<FIRST>":"Open","<HIGH>":"High","<LOW>":"Low","<VOL>":"Volume"})
-    df.index.rename('Date',inplace=True)
-    df = df[["Open","High","Low","Close","Volume","Yesterday"]]
-    df["Date"] = df.index
-    df["JDate"] = df["Date"].jalali.to_jalali()
+    if type(symbols) == str:
+        symbols = [symbols]
+    for symbol in symbols:
+        symbol = symbol.replace("ی","ي").replace('ک','ك')
+        id = stock_id(symbol)
+        url = 'http://old.tsetmc.com/tsev2/data/Export-txt.aspx?t=i&a=1&b=0&i=' + id
+        html=rq.get(url,headers=headers).content
+        df=pd.read_csv(io.StringIO(html.decode("utf-8")),index_col="<DTYYYYMMDD>",parse_dates=True)[::-1]
+        df=df.rename(columns={"<OPEN>": "Yesterday", "<CLOSE>": "Close","<FIRST>":"Open","<HIGH>":"High","<LOW>":"Low","<VOL>":"Volume"})
+        df.index.rename('Date',inplace=True)
+        df = df[["Open","High","Low","Close","Volume","Yesterday"]]
+        
+        def adjusting(df:pd.DataFrame)->pd.DataFrame:
+            df["temp"] = (df["Close"].shift(1) / df["Yesterday"]).fillna(1)
+            df["temp"] = (df["temp"].iloc[::-1].cumprod().iloc[::-1].shift(-1)).fillna(1)
+            df["Adj Open"] = (df["Open"] / df["temp"]).astype(int)
+            df["Adj High"] = (df["High"] / df["temp"]).astype(int)
+            df["Adj Low"] = (df["Low"] / df["temp"]).astype(int)
+            df["Adj Close"] = (df["Close"] / df["temp"]).astype(int)
+            df = df.drop(columns=["temp"])
+            return df
+        if adjust_price:
+            df = adjusting(df)
+            if drop_unadjusted:
+                df["Open"] = df["Adj Open"]
+                df["High"] = df["Adj High"]
+                df["Low"] = df["Adj Low"]
+                df["Close"] = df["Adj Close"]
+                df.drop(["Adj Open","Adj High","Adj Low","Adj Close"], axis=1, inplace=True)
+        df.drop(["Yesterday"], axis=1, inplace=True) 
+        if len(symbols) > 1:
+            for j in df.columns:
+                df = df.rename(columns={f'{j}': f'{symbol},{j}'})
+            try:
+                data = pd.concat([data, df],axis=1)
+            except:
+                data = df.copy()
+    if len(symbols) > 1:
+        data.columns = pd.MultiIndex.from_tuples([(x.split(",")[1], x.split(",")[0]) for x in data.columns])
+        data["Date","Date"] = data.index
+        data["JDate"] = data["Date","Date"].jalali.to_jalali()
+        data = data.reindex(data.columns.levels[0], level=0, axis=1)
+    else:
+        data = df.copy()
+        data["Date"] = data.index
+        data["JDate"] = data["Date"].jalali.to_jalali()
     if j_date:
         if start != None:
             start = jdatetime.date(int(start[:4]),int(start[5:7]),int(start[8:])).togregorian()
@@ -153,28 +188,11 @@ def download_history(symbol, j_date=False, start=None, end=None, adjust_price=Fa
             end = jdatetime.date(int(end[:4]),int(end[5:7]),int(end[8:])).togregorian()
             end = str(end.year)+"-"+str(end.month)+"-"+str(end.day)
     if start != None:
-        df = df[start:]
+        data = data[start:]
     if end != None:
-        df = df[:end]
-    def adjusting(df:pd.DataFrame)->pd.DataFrame:
-        df["temp"] = (df["Close"].shift(1) / df["Yesterday"]).fillna(1)
-        df["temp"] = (df["temp"].iloc[::-1].cumprod().iloc[::-1].shift(-1)).fillna(1)
-        df["Adj Open"] = (df["Open"] / df["temp"]).astype(int)
-        df["Adj High"] = (df["High"] / df["temp"]).astype(int)
-        df["Adj Low"] = (df["Low"] / df["temp"]).astype(int)
-        df["Adj Close"] = (df["Close"] / df["temp"]).astype(int)
-        df = df.drop(columns=["temp"])
-        return df
-    if adjust_price:
-        df = adjusting(df)
-        if drop_unadjusted:
-            df["Open"] = df["Adj Open"]
-            df["High"] = df["Adj High"]
-            df["Low"] = df["Adj Low"]
-            df["Close"] = df["Adj Close"]
-            df.drop(["Adj Open","Adj High","Adj Low","Adj Close"], axis=1, inplace=True)
-    df.drop(["Yesterday", "Date"], axis=1, inplace=True)
-    return df
+        data = data[:end]
+    data.drop(["Date"], axis=1, inplace=True)
+    return data
 
 #----------------------------------------
 
@@ -183,8 +201,7 @@ def pricing_based_on_stock(stock_name:str, trading_days:int=100, IV=False, lever
     """
     Valuation of all options on a particular stock
     """
-    if "ی" in stock_name:
-        stock_name = stock_name.replace("ی","ي")
+    stock_name = stock_name.replace("ی","ي").replace('ک','ك')
     last_price = stock_price(stock_name)
     df_stock = download_history(stock_name, start=None, end=None, adjust_price=True)[-trading_days:]
     df = df_stock[["Adj Close"]].copy()
@@ -276,10 +293,9 @@ def pricing_based_on_option(option_name:str, trading_days:int=100, IV=False, lev
     """
     Valuation of a particular option
     """
-    if "ی" in option_name:
-        option_name = option_name.replace("ی","ي")
+    option_name = option_name.replace("ی","ي").replace('ک','ك')
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    url = f"http://www.tsetmc.com/tsev2/data/search.aspx?skey={option_name}"
+    url = f"http://old.tsetmc.com/tsev2/data/search.aspx?skey={option_name}"
     html = rq.get(url, headers=headers).text
     if len(html.split(";")) == 2:
         stock_name = html.split(",")[1].split("-")[0].split(" ")[1]

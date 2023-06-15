@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: tse-option
-Version: 0.1.1.0
+Version: 0.1.2.0
 Summary: Option pricing in Tehran Stock Exchange (TSE) and Iran Farabourse (IFB)
 Author-email: Seyed Mohammad Sokout <sm.sokut@gmail.com>
 Project-URL: Homepage, https://github.com/sm-sokout/tse-option
@@ -36,6 +36,16 @@ License-File: LICENSE
 
 2- رفع برخی مشکلات
 
+----------------------------------------------
+
+
+**تغییرات نسخه جدید(0.1.2.0)**: 
+
+
+1- بروزرسانی لینک های tsetmc
+
+
+2- امکان دریافت تاریخچه قیمت چندین نماد(مانند yfinance)
 
 ----------------------------------------------
 
@@ -96,6 +106,32 @@ df = tso.pricing_based_on_option(option_name="ضسپا1205", trading_days=100, I
 
 
 **P_BSM:** نمایش نسبت قیمت بازار به قیمت تئوری بلک-شولز-مرتون
+
+-----------------------------------------------------------------
+
+#### دریافت تاریخچه قیمت
+```python
+df = tso.download_history("خودرو", j_date=True, start="1402-01-01", end=None, adjust_price=True, drop_unadjusted=False)
+```
+```python
+df = tso.download_history(symbols=["خودرو","فولاد","وبملت"], j_date=False, start="2023-01-01", end=None, adjust_price=False, drop_unadjusted=False)
+```
+**symbols:** نماد یا نمادهای مورد نظر
+
+
+**j_date:**  نوع تاریخ ورودی
+
+
+**start:** تاریخ شروع (براساس j_date لازم است تعیین شود)
+
+
+**end:** تاریخ پایان (براساس j_date لازم است تعیین شود)
+
+
+**adjust_price:**  نمایش قیمت های تعدیل شده سهام
+
+
+**drop_unadjusted:** حذف ستون های قیمت های تعدیل نشده (حتما باید adjust_price برابر True باشد)
 
 
 -----------------------------------------------------------------
