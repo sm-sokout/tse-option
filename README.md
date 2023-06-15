@@ -1,10 +1,6 @@
 # tse_option
 
 
-[![Downloads](https://static.pepy.tech/personalized-badge/tse-option?period=total&units=international_system&left_color=grey&right_color=red&left_text=TotalDownloads)](https://pepy.tech/project/tse-option)
-[![Downloads](https://static.pepy.tech/personalized-badge/tse-option?period=month&units=international_system&left_color=grey&right_color=orange&left_text=Downloads/month)](https://pepy.tech/project/tse-option)
-![Downloads](https://img.shields.io/badge/version-0.1.1.0-brightgreen)
-
 
 این پکیج جهت بررسی و قیمت گذاری اوراق اختیار معامله موجود در بورس اوراق بهادار تهران و فرابورس ایران ایجاد شده است. لازم به یادآوری است که در این ماژول از مدل ارائه شده توسط بلک-شولز-مرتون در سال 1973 برای قیمت گذاری اختیار معامله استفاده شد است. سعی بر آن است که در نسخه های بعدی سایر مدل های قیمت گذاری نیز اضافه شوند.
 
@@ -25,6 +21,16 @@
 
 2- رفع برخی مشکلات
 
+----------------------------------------------
+
+
+**تغییرات نسخه جدید(0.1.2.0)**: 
+
+
+1- بروزرسانی لینک های tsetmc
+
+
+2- امکان دریافت تاریخچه قیمت چندین نماد(مانند yfinance)
 
 ----------------------------------------------
 
@@ -85,6 +91,32 @@ df = tso.pricing_based_on_option(option_name="ضسپا1205", trading_days=100, I
 
 
 **P_BSM:** نمایش نسبت قیمت بازار به قیمت تئوری بلک-شولز-مرتون
+
+-----------------------------------------------------------------
+
+#### دریافت تاریخچه قیمت
+```python
+df = tso.download_history("خودرو", j_date=True, start="1402-01-01", end=None, adjust_price=True, drop_unadjusted=False)
+```
+```python
+df = tso.download_history(symbols=["خودرو","فولاد","وبملت"], j_date=False, start="2023-01-01", end=None, adjust_price=False, drop_unadjusted=False)
+```
+**symbols:** نماد یا نمادهای مورد نظر
+
+
+**j_date:**  نوع تاریخ ورودی
+
+
+**start:** تاریخ شروع (براساس j_date لازم است تعیین شود)
+
+
+**end:** تاریخ پایان (براساس j_date لازم است تعیین شود)
+
+
+**adjust_price:**  نمایش قیمت های تعدیل شده سهام
+
+
+**drop_unadjusted:** حذف ستون های قیمت های تعدیل نشده (حتما باید adjust_price برابر True باشد)
 
 
 -----------------------------------------------------------------
