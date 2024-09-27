@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
-Name: tse-option
-Version: 0.1.2.1
+Name: tse_option
+Version: 0.1.2.3
 Summary: Option pricing in Tehran Stock Exchange (TSE) and Iran Farabourse (IFB)
 Author-email: Seyed Mohammad Sokout <sm.sokut@gmail.com>
 Project-URL: Homepage, https://github.com/sm-sokout/tse-option
@@ -10,8 +10,18 @@ Classifier: License :: OSI Approved :: MIT License
 Classifier: Operating System :: OS Independent
 Requires-Python: >=3.7
 Description-Content-Type: text/markdown
-Provides-Extra: dev
 License-File: LICENSE
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: scipy
+Requires-Dist: requests
+Requires-Dist: jalali_pandas
+Provides-Extra: dev
+Requires-Dist: numpy; extra == "dev"
+Requires-Dist: pandas; extra == "dev"
+Requires-Dist: scipy; extra == "dev"
+Requires-Dist: requests; extra == "dev"
+Requires-Dist: jalali_pandas; extra == "dev"
 
 # tse_option
 
@@ -19,11 +29,11 @@ License-File: LICENSE
 
 این پکیج جهت بررسی و قیمت گذاری اوراق اختیار معامله موجود در بورس اوراق بهادار تهران و فرابورس ایران ایجاد شده است. لازم به یادآوری است که در این ماژول از مدل ارائه شده توسط بلک-شولز-مرتون در سال 1973 برای قیمت گذاری اختیار معامله استفاده شد است. سعی بر آن است که در نسخه های بعدی سایر مدل های قیمت گذاری نیز اضافه شوند. 
 
-برخی از توابع این پروژه،از ماژول های [finpy_tse](https://github.com/ARahimiQuant/finpy-tse) و [tsemodule5](https://github.com/python4financeacademy/tsemodule5) اقتباس شده اند.
+برخی از توابع این پروژه،از ماژول های [finpy_tse](https://github.com/ARahimiQuant/finpy-tse) و [tsemodule5](https://github.com/python4financeacademy/tsemodule5) اقتباس شده اند. همچنین باید تشکر کنم از آقای حمید ماهان که برای رفع مشکل دریافت دیتای فرابورس کمک کردند..
 
 ----------------------------------------------
 
-**توجه**: کلیه خروجی این ماژول از جمله قیمت گذاری و محاسبه تلاطم ضمنی و ... به جهت تسهیل در تصمیم گیری سرمایه گذاران است و هیچگونه پیشنهادی برای خرید یا فروش آن محسوب نمی شود. لذا تمامی عواقب سرمایه گذاری به عهده شخص سرمایه گذار است و توسعه دهندگان هیچ مسئولیتی در قبال زیان های احتمالی ندارند.
+**توجه****: کلیه خروجی این ماژول از جمله قیمت گذاری و محاسبه تلاطم ضمنی و ... به جهت تسهیل در تصمیم گیری سرمایه گذاران است و هیچگونه پیشنهادی برای خرید یا فروش آن محسوب نمی شود. لذا تمامی عواقب سرمایه گذاری به عهده شخص سرمایه گذار است و توسعه دهنده هیچ مسئولیتی در قبال زیان های احتمالی ندارند.** 
 
 ----------------------------------------------
 
@@ -36,6 +46,7 @@ License-File: LICENSE
 
 2- رفع برخی مشکلات
 
+
 ----------------------------------------------
 
 
@@ -45,15 +56,38 @@ License-File: LICENSE
 1- بروزرسانی لینک های tsetmc
 
 
-2- امکان دریافت تاریخچه قیمت چندین نماد(مانند yfinance)
+2- امکان دریافت همزمان تاریخچه قیمت چندین نماد(مانند yfinance)
 
 
 3- بروزرسانی لینک سایت tse.ir
 
+
 ----------------------------------------------
 
 
+**تغییرات نسخه جدید(0.1.2.3)**: 
 
+
+1- رفع مشکل محاسبه نرخ بهره بدون ریسک
+
+
+2- بهبود کلی و رفع برخی مشکلات
+
+
+----------------------------------------------
+
+
+**در حال حاضر امکان دریافت اطلاعات مربوط به آپشنهای فرابورس امکان پذیر نیست. در آپدیت بعدی سعی می شود این مشکل برطرف گردد.
+**
+
+
+----------------------------------------------
+
+
+### بروزرسانی
+```python
+pip install tse-option --upgrade
+```
 
 ### نصب
 ```python
@@ -70,10 +104,10 @@ import tse_option as tso
 
 #### دریافت داده های مربوط به تمام اختیار معامله های موجود روی یک سهم خاص
 ```python
-df = tso.pricing_based_on_stock(stock_name="خودرو", trading_days=100, IV=False, leverage=True, P_BSM=False, sort="Maturity")
+df = tso.option_chain(symbol="خودرو", trading_days=100, IV=False, leverage=True, P_BSM=False, sort="Maturity")
 ```
 
-**stock_name:**  نماد سهم مورد نظر
+**symbol:**  نماد دارایی پایه مورد نظر
 
 
 **trading_days:**  تعداد روزهای معاملاتی مورد نظر که تلاطم تاریخی براساس آن محاسبه می شود.
@@ -85,10 +119,10 @@ df = tso.pricing_based_on_stock(stock_name="خودرو", trading_days=100, IV=Fa
 **leverage:** نمایش مقدار اهرم اختیار معامله
 
 
-**P_BSM:** نمایش نسبت قیمت بازار به قیمت تئوری بلک-شولز-مرتون
+**P_BSM:** نمایش نسبت قیمت بازار به قیمت تئوریک بلک-شولز-مرتون
 
 
-**sort:** نحوه مرتب شدن دیتافریم خروجی
+**sort:** نحوه مرتب شدن دیتافریم
 
 (می توان از متغیرهایی چون زمان باقی مانده تا سررسید(Maturity)،قیمت اعمال(Strike Price) و موقعیت های باز(Open Interest) برای مرتب سازی استفاده کرد)
 
@@ -97,9 +131,9 @@ df = tso.pricing_based_on_stock(stock_name="خودرو", trading_days=100, IV=Fa
 
 #### دریافت داده های مربوط به یک اختیار معامله خاص
 ```python
-df = tso.pricing_based_on_option(option_name="ضسپا1205", trading_days=100, IV=False, leverage=True, P_BSM=False, sort="Maturity")
+df = tso.call(option_symbol="ضخود1130", trading_days=100, IV=False, leverage=True, P_BSM=False, sort="Maturity")
 ```
-**option_name:** نماد اختیار معامله مورد نظر
+**option_symbol:** نماد اختیار معامله مورد نظر
 
 
 **IV:**  محاسبه تلاطم ضمنی یا Implied Volatility
@@ -108,16 +142,16 @@ df = tso.pricing_based_on_option(option_name="ضسپا1205", trading_days=100, I
 **leverage:** نمایش مقدار اهرم اختیار معامله
 
 
-**P_BSM:** نمایش نسبت قیمت بازار به قیمت تئوری بلک-شولز-مرتون
+**P_BSM:** نمایش نسبت قیمت بازار به قیمت تئوریک بلک-شولز-مرتون
 
 -----------------------------------------------------------------
 
 #### دریافت تاریخچه قیمت
 ```python
-df = tso.download_history("خودرو", j_date=True, start="1402-01-01", end=None, adjust_price=True, drop_unadjusted=False)
+df = tso.download("خودرو", j_date=True, start="1402-01-01", end=None, adjust_price=True, drop_unadjusted=False)
 ```
 ```python
-df = tso.download_history(symbols=["خودرو","فولاد","وبملت"], j_date=False, start="2023-01-01", end=None, adjust_price=False, drop_unadjusted=False)
+df = tso.download(symbols=["خودرو","فولاد","وبملت"], j_date=False, start="2023-01-01", end=None, adjust_price=False, drop_unadjusted=False)
 ```
 **symbols:** نماد یا نمادهای مورد نظر
 
