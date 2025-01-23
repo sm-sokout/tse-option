@@ -8,6 +8,7 @@ from scipy.stats import norm
 import jdatetime
 import jalali_pandas
 import io
+import math
 
 #----------------------------------------
 
@@ -19,6 +20,25 @@ def BSM_call(S0, K, rf, T, sigma):
     d2 = d1 - (sigma * (T ** 0.5))
     call_price = (S0 * norm.cdf(d1)) - (K * np.exp(-rf*T) * norm.cdf(d2))
     return call_price
+
+#----------------------------------------
+
+def BSM_put(S0, K, rf, T, sigma):
+    
+    d1 = (np.log(S0 / K) + (rf + 0.5 * sigma ** 2) * T) / (sigma * np.sqrt(T))
+    d2 = d1 - sigma * np.sqrt(T)
+    
+    put_price = K * np.exp(-rf * T) * norm.cdf(-d2) - S0 * norm.cdf(-d1)
+    return put_price
+
+#----------------------------------------
+
+def delta(S0, K, rf, T, sigma, type):
+    d1 = (np.log(S0/K) + (rf+0.5*sigma**2)*T) / (sigma*np.log(T))
+    if type == 'call':
+        return norm.cdf(d1)
+    elif type == 'put':
+        return norm.cdf(d1) - 1
 
 #----------------------------------------
 
@@ -88,7 +108,7 @@ def stock_price(symbol):
 
 #----------------------------------------
 
-def tse_options(symbol, stock=True):
+def tse_call(symbol, stock=True):
     url = "https://old.tse.ir/json/MarketWatch/MarketWatch_7.xml"
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     data = pd.read_html(url)[0]
@@ -97,11 +117,33 @@ def tse_options(symbol, stock=True):
         data["نماد دارایی پایه"] = [data.iloc[i]['نام'].split("-")[0].split(" ")[1] for i in range(len(data))]
         data = data[data["نماد دارایی پایه"] == symbol]
     else:
-        data = data[data["نماد"] == symbol]
+        if symbol in data["نماد"].values:
+            data = data[data["نماد"] == symbol]
+        else:
+            data = data[data["نماد"] == symbol[:-1]]
     return data
 
 #----------------------------------------
-'''
+
+def tse_put(symbol, stock=True):
+    url = "https://old.tse.ir/json/MarketWatch/MarketWatch_7.xml"
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    data = pd.read_html(url)[0]
+    data = data[data["نماد"].notna()]
+    data['نماد'] = data['نماد'].apply(lambda x: 'ط'+x[1:])
+    data['نام'] = data['نام'].apply(lambda x: x.replace('اختيارخ','اختيارف'))
+    if stock == True:
+        data["نماد دارایی پایه"] = [data.iloc[i]['نام'].split("-")[0].split(" ")[1] for i in range(len(data))]
+        data = data[data["نماد دارایی پایه"] == symbol]
+    else:
+        if symbol in data["نماد"].values:
+            data = data[data["نماد"] == symbol]
+        else:
+            data = data[data["نماد"] == symbol[:-1]]
+    return data[['نماد','نام','موقیعت های باز','اندازه قرارداد','روزهای باقیمانده تا سررسید','قیمت اعمال','قیمت مبنای دارایی پایه']]
+
+#----------------------------------------
+
 def farabourse_options(symbol, stock=True):
     url = "https://ifb.ir/OptionStockQuote.aspx"
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
@@ -116,9 +158,36 @@ def farabourse_options(symbol, stock=True):
     "قیمت.1": "حجم بهترین سفارش خرید","قیمت":"قیمت بهترین سفارش فروش",
     "تعداد موقعیت\u200cهای باز":"موقیعت های باز"})
     return data
-'''
+
 #----------------------------------------
 
+def initial_margin(S:int, K:int, premium:int, size:int=1000, type:str="call")->int:
+    """
+    this function is used to calculation of initial margin
+    
+    input--> 1. S:       underlying asset price
+             2. K:       strike price
+             3. premium: option price in the market
+             4. size:    the size of option contract.
+             5. type:    type of the option
+    
+    output--> the amount of margin that we have to pay at the beginning.
+    """
+    round_factor = 100_000
+    if type == "call":
+        L = abs(np.minimum(S-K, 0)*size)
+    else:
+        L = abs(np.minimum(K-S, 0)*size)
+    A = 0.2*S*size - L
+    B = 0.1*K*size
+    try:
+        margin = (((math.floor(np.maximum(A,B)/round_factor))+1)*round_factor)
+        return margin+premium*size
+    except:
+        #print(S,K,premium,size,type)
+        return np.NaN
+
+#----------------------------------------
 
 def download(symbols, j_date=False, start=None, end=None, adjust_price=False, drop_unadjusted=False):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
@@ -199,12 +268,12 @@ def option_chain(symbol:str, trading_days:int=100, IV=False, leverage=True, P_BS
     except:
         print('در حال حاضر دریافت اطلاعات از فرابورس امکان پذیر نیست.\nلطفا نرخ بهره بدون ریسک مورد نظر را بصورت یک عدد اعشاری وارد کنید.')
         rf = float(input('... '))
-    data = tse_options(symbol)
+    data = tse_call(symbol)
     if data.empty:
-        #data = farabourse_options(symbol)
+        data = farabourse_options(symbol)
         raise NameError('در حال حاضر دریافت اطلاعات از فرابورس امکان پذیر نیست.')
     data.reset_index(inplace=True, drop=True)
-    col = ["Symbol", "Strike Price", "Status", "Maturity(day)","Open Interest", "Bid", "Ask", "Delta"]
+    col = ["Symbol", "Strike Price", "Status", "Maturity(day)", "Size", "Open Interest", "Bid", "Ask", "Initial Margin", "Delta"]
     if IV == True:
         col.append("IV")
     if leverage == True:
@@ -225,6 +294,7 @@ def option_chain(symbol:str, trading_days:int=100, IV=False, leverage=True, P_BS
         else:
             df.loc[i,'Status'] = "ATM"
         df.loc[i,"Maturity(day)"] = int(data.loc[i,"روزهای باقیمانده تا سررسید"])
+        df.loc[i,"Size"] = data.loc[i,"اندازه قرارداد"]
         df.loc[i,'Open Interest'] = data.loc[i,"موقیعت های باز"]
         df.loc[i,'Bid'] = data.loc[i,"حجم بهترین سفارش خرید"]
         df.loc[i,'Ask'] = data.loc[i,"قیمت بهترین سفارش فروش"]
@@ -237,15 +307,15 @@ def option_chain(symbol:str, trading_days:int=100, IV=False, leverage=True, P_BS
     else:
         df = df.sort_values(by=['Open Interest'], ascending=False)
     df = df.reset_index(drop=True)
-    #return df
+
+    df['Initial Margin'] = df.apply(lambda x: initial_margin(last_price, x['Strike Price'], x['Bid'], x["Size"], 'call'), axis=1)
+    df['BSM'] = df.apply(lambda x: round(BSM_call(last_price, x['Strike Price'], rf, x['Maturity(day)']/360, sigma)), axis=1)
+    df['Delta'] = df.apply(lambda x: round(delta(last_price, x['Strike Price'], rf, x['Maturity(day)']/360, sigma, 'call'),2), axis=1)
+    
     for i in range(len(df)):
         K = df.loc[i,"Strike Price"]
         T = df.loc[i,"Maturity(day)"]/360
-        d1 = (np.log(last_price/K) + (rf + (sigma ** 2 )/2) * T)/(sigma * (T ** 0.5))
-        d2 = d1 - (sigma * (T ** 0.5))
-        df.loc[i, 'BSM'] = round((last_price * norm.cdf(d1)) - (K * np.exp(-rf*T) * norm.cdf(d2)))
         market_price = int(df.loc[i,'Ask'])
-        df.loc[i,'Delta'] = round(norm.cdf(d1),2)
         if IV == True:
             if market_price == 0:
                 df.loc[i,'IV'] = "%-"
@@ -277,6 +347,7 @@ def option_chain(symbol:str, trading_days:int=100, IV=False, leverage=True, P_BS
     df.index = df["Symbol"]
     df = df.drop("Symbol", axis=1)
     print(f"Stock Price: {int(last_price)} \tRiskFreeRate: {round(rf*100,2)}% \tHV: {round(sigma*100,2)}%")
+    print('\nوجه تضمین به ازای هر قرارداد محاسبه شده است.')
     return df
 
 #----------------------------------------
@@ -298,16 +369,16 @@ def call(option_symbol:str, trading_days:int=100, IV=False, leverage=True, P_BSM
         sigma = df["return"].std() * np.sqrt(240)
         rf = risk_free_interest_rate()
         option_in_tse = option_symbol + "1"
-        data = tse_options(option_in_tse, False)
+        data = tse_call(option_in_tse, False)
         if data.empty:
-            #data = farabourse_options(option_symbol, False)
+            data = farabourse_options(option_symbol, False)
             data = pd.DataFrame()
         data.reset_index(inplace=True, drop=True)
         if data.empty:
             raise NameError("This symbol does not exist or has expired. Please enter the symbol correctly!")
         
         else:
-            col = ["Symbol", "Strike Price", "Status", "Maturity(day)","Open Interest", "Bid", "Ask", "Delta"]
+            col = ["Symbol", "Strike Price", "Status", "Maturity(day)", "Size", "Open Interest", "Bid", "Ask", "Last Price", "Initial Margin", "Delta"]
             if IV == True:
                 col.append("IV")
             if leverage == True:
@@ -327,23 +398,26 @@ def call(option_symbol:str, trading_days:int=100, IV=False, leverage=True, P_BSM
             else:
                 df.loc[0,"Status"] = "ATM"
             df.loc[0,"Maturity(day)"] = int(data.loc[0,"روزهای باقیمانده تا سررسید"])
+            df.loc[0,"Size"] = data.loc[0,"اندازه قرارداد"]
             df.loc[0,"Open Interest"] = data.loc[0,"موقیعت های باز"]
             df.loc[0,"Bid"] = data.loc[0,"حجم بهترین سفارش خرید"]
             df.loc[0,"Ask"] = data.loc[0,"قیمت بهترین سفارش فروش"]
+            df.loc[0,"Last Price"] = stock_price(option_symbol)
 
             df = df.reset_index(drop=True)
 
-            K = df.loc[0,"Strike Price"]
-            T = df.loc[0,"Maturity(day)"]/360
-            d1 = (np.log(last_price/K) + (rf + (sigma ** 2 )/2) * T)/(sigma * (T ** 0.5))
-            d2 = d1 - (sigma * (T ** 0.5))
-            df.loc[0,"BSM"] = round((last_price * norm.cdf(d1)) - (K * np.e ** (-rf*T) * norm.cdf(d2)))
+            df['Initial Margin'] = df.apply(lambda x: initial_margin(last_price, x['Strike Price'], x['Bid'], x["Size"], 'call'), axis=1)
+            df['BSM'] = df.apply(lambda x: round(BSM_call(last_price, x['Strike Price'], rf, x['Maturity(day)']/360, sigma)), axis=1)
+            df['Delta'] = df.apply(lambda x: round(delta(last_price, x['Strike Price'], rf, x['Maturity(day)']/360, sigma, 'call'),2), axis=1)
+
             market_price = int(df.loc[0,"Ask"])
-            df.loc[0,"Delta"] = round(norm.cdf(d1),2)
+
             if IV == True:
                 if market_price == 0:
                     df.loc[0,"IV"] = "%-"
                 else:
+                    K = df.loc[0, "Strike Price"]
+                    T = df.loc[0, "Maturity(day)"]/360
                     df.loc[0,"IV"] = f"%{round(find_IV(market_price, last_price, K, rf, T)*100,1)}"
                     if df.loc[0,"IV"] == '%nan':
                         df.loc[0,"IV"] = "%-"
@@ -368,11 +442,91 @@ def call(option_symbol:str, trading_days:int=100, IV=False, leverage=True, P_BSM
             df.index = df["Symbol"]
             df = df.drop("Symbol", axis=1)
             print(f"Stock Price: {int(last_price)}\tRiskFreeRate: {round(rf*100,2)}%\tHV: {round(sigma*100,2)}%")
+            print('\nوجه تضمین به ازای هر قرارداد محاسبه شده است.')
             return df
 
+    elif len(html.split(";")) == 1:
+        raise NameError("This symbol does not exist. Please enter the symbol correctly!")
+    else:
+        raise NameError("Please enter the symbol completely!")
 
-   
+#----------------------------------------
 
+def put(option_symbol:str, trading_days:int=100, leverage=False, P_BSM=False):
+    option_symbol = option_symbol.replace("ی","ي").replace('ک','ك')
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    url = f"http://old.tsetmc.com/tsev2/data/search.aspx?skey={option_symbol}"
+    html = rq.get(url, headers=headers).text
+    if len(html.split(";")) == 2:
+        stock_symbol = html.split(",")[1].split("-")[0].split(" ")[1]
+        last_price = stock_price(stock_symbol)
+        df_stock = download(stock_symbol, start=None, end=None, adjust_price=True)[-trading_days:]
+        df = df_stock[["Adj Close"]].copy()
+        df["return"] = np.log(df["Adj Close"]/df["Adj Close"].shift())
+        sigma = df["return"].std() * np.sqrt(240)
+        rf = risk_free_interest_rate()
+        option_in_tse = option_symbol + "1"
+        data = tse_put(option_in_tse, False)
+        if data.empty:
+            #data = farabourse_options(option_symbol, False)
+            data = pd.DataFrame()
+        data.reset_index(inplace=True, drop=True)
+        if data.empty:
+            raise NameError("This symbol does not exist or has expired. Please enter the symbol correctly!")
+        
+        else:
+            col = ["Symbol", "Strike Price", "Status", "Maturity(day)", "Size", "Open Interest", "Last Price", "Initial Margin", "Delta"]
+            if leverage == True:
+                col.append("Leverage")
+            col.append("BSM")
+            if P_BSM == True:
+                col.append("%Price/BSM")
+            df = pd.DataFrame(index=range(len(data)),columns=col)
+
+            df.loc[0,'Symbol'] = data.loc[0,"نماد"]
+            df.loc[0,'Stock'] = stock_symbol
+            df.loc[0,'Strike Price'] = data.loc[0,"قیمت اعمال"]
+            if last_price > 1.025*df.loc[0,"Strike Price"]:
+                df.loc[0,"Status"] = "OTM"
+            elif last_price < 0.975*df.loc[0,"Strike Price"]:
+                df.loc[0,"Status"] = "ITM"
+            else:
+                df.loc[0,"Status"] = "ATM"
+            df.loc[0,"Maturity(day)"] = int(data.loc[0,"روزهای باقیمانده تا سررسید"])
+            df.loc[0,"Size"] = data.loc[0,"اندازه قرارداد"]
+            df.loc[0,"Open Interest"] = data.loc[0,"موقیعت های باز"]
+            df.loc[0,"Last Price"] = stock_price(option_symbol)
+
+            df = df.reset_index(drop=True)
+            df['Initial Margin'] = df.apply(lambda x: initial_margin(last_price, x['Strike Price'], x['Last Price'], x["Size"], 'put'), axis=1)
+            df['BSM'] = df.apply(lambda x: round(BSM_put(last_price, x['Strike Price'], rf, x['Maturity(day)']/360, sigma)), axis=1)
+            df['Delta'] = df.apply(lambda x: round(delta(last_price, x['Strike Price'], rf, x['Maturity(day)']/360, sigma, 'put'),2), axis=1)
+            
+            market_price = int(df.loc[0,"Last Price"])
+
+            if leverage == True:
+                try:
+                    df.loc[0,"Leverage"] = round((-df.loc[0,"Delta"]) * last_price /market_price, 2)
+                except:
+                    df.loc[0,"Leverage"] = np.inf
+
+            if P_BSM == True:
+                try:
+                    price_bsm = round(-100*(market_price/df.loc[0,"BSM"]-1),1)
+                    if price_bsm >=0:
+                        df.loc[0,"%Price/BSM"] = f"%{price_bsm}\U0001f7e2"
+                    else:
+                        df.loc[0,"%Price/BSM"] = f"%{price_bsm}\U0001F534"
+                    if market_price == 0:
+                        df.loc[0,"%Price/BSM"] = "%-"
+                except:
+                    df.loc[0,"%Price/BSM"] = "%-"
+
+            df.index = df["Symbol"]
+            df = df.drop("Symbol", axis=1)
+            print(f"Stock Price: {int(last_price)}\tRiskFreeRate: {round(rf*100,2)}%\tHV: {round(sigma*100,2)}%")
+            print('\nوجه تضمین به ازای هر قرارداد محاسبه شده است.')
+            return df
 
     elif len(html.split(";")) == 1:
         raise NameError("This symbol does not exist. Please enter the symbol correctly!")

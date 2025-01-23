@@ -130,7 +130,7 @@ df = tso.put(option_symbol="طخود1138", trading_days=100, IV=False, leverage=
 
 | arguments   |    توضیحات |
 |:------------|:-----------|
-| option_symbol      | نماد اختیار خرید |
+| option_symbol      | نماد اختیار فروش |
 | trading_days| تعداد روز معاملاتی برای محاسبه تلاطم تاریخی |
 | IV          | تلاطم ضمنی (Implied Volatility) |
 | leverage       | محاسبه اهرم |
@@ -165,7 +165,7 @@ df = tso.download(symbols=["خودرو","فولاد","وبملت"], j_date=False
 -----------------------------------------------------------------
 
 
-My Telegram Channel: [AlgoEdge](https://t.me/algorithm_edge)
+My Telegram Channel: [@AlgoEdge](https://t.me/algorithm_edge)
 
 
 در صورت برخورد با هرگونه خطا، ممنون میشم به من اطلاع بدین (sm.sokut@gmail.com)
