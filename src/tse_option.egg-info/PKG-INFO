@@ -1,6 +1,6 @@
-Metadata-Version: 2.2
+Metadata-Version: 2.4
 Name: tse_option
-Version: 0.1.3.0
+Version: 0.1.4.0
 Summary: Option pricing in Tehran Stock Exchange (TSE) and Iran Farabourse (IFB)
 Author-email: Seyed Mohammad Sokout <sm.sokut@gmail.com>
 Project-URL: Homepage, https://github.com/sm-sokout/tse-option
@@ -22,14 +22,17 @@ Requires-Dist: pandas; extra == "dev"
 Requires-Dist: scipy; extra == "dev"
 Requires-Dist: requests; extra == "dev"
 Requires-Dist: jalali_pandas; extra == "dev"
+Dynamic: license-file
 
 # tse_option
 
 
 
-این پکیج جهت بررسی و قیمت گذاری اوراق اختیار معامله موجود در بورس اوراق بهادار تهران و فرابورس ایران ایجاد شده است. لازم به یادآوری است که در این ماژول از مدل ارائه شده توسط بلک-شولز-مرتون در سال 1973 برای قیمت گذاری اختیار معامله استفاده شد است. سعی بر آن است که در نسخه های بعدی سایر مدل های قیمت گذاری نیز اضافه شوند. 
+این پکیج جهت بررسی و دریافت داده های اختیار معاملات بورس اوراق بهادار تهران و فرابورس ایران ایجاد شده است. 
 
 برخی از توابع این پروژه،از ماژول های [finpy_tse](https://github.com/ARahimiQuant/finpy-tse) و [tsemodule5](https://github.com/python4financeacademy/tsemodule5) اقتباس شده اند. همچنین باید تشکر کنم از آقای حمید ماهان که برای رفع مشکل دریافت دیتای فرابورس کمک کردند..
+
+- کانال تلگرام: [@AlgoEdge](https://t.me/algorithm_edge)
 
 ----------------------------------------------
 
@@ -92,6 +95,19 @@ Requires-Dist: jalali_pandas; extra == "dev"
 ----------------------------------------------
 
 
+**تغییرات نسخه جدید(0.1.4.0)**: 
+
+
+1- رفع مشکل عدم دریافت دیتای اختیار معاملات
+
+2- دریافت دیتای موقعیت های باز هر اختیار معامله
+
+3- در صورت خطا در محاسبه نرخ بهره، این مقدار بصورت دستی از کاربر گرفته می شود
+
+
+----------------------------------------------
+
+
 ### بروزرسانی
 ```python
 pip install tse-option --upgrade
@@ -125,7 +141,7 @@ df = tso.option_chain(symbol="خودرو", trading_days=100, IV=False, leverage=
 | sort        | نحوه مرتب سازی |
 
 
-(می توان از متغیرهایی چون زمان باقی مانده تا سررسید(Maturity)،قیمت اعمال(Strike Price) و موقعیت های باز(Open Interest) برای مرتب سازی استفاده کرد)
+(می توان از متغیرهایی چون زمان باقی مانده تا سررسید(Maturity)،قیمت اعمال(Strike Price) و موقعیت های باز(Open Interests) برای مرتب سازی استفاده کرد)
 
 
 -----------------------------------------------------------------
