@@ -6,7 +6,7 @@
 
 برخی از توابع این پروژه،از ماژول های [finpy_tse](https://github.com/ARahimiQuant/finpy-tse) و [tsemodule5](https://github.com/python4financeacademy/tsemodule5) اقتباس شده اند. همچنین باید تشکر کنم از آقای حمید ماهان که برای رفع مشکل دریافت دیتای فرابورس کمک کردند..
 
-- کانال تلگرام: [@AlgoEdge](https://t.me/algorithm_edge)
+- کانال تلگرام: [@algorithm_edge](https://t.me/algorithm_edge)
 
 ----------------------------------------------
 
@@ -180,10 +180,11 @@ df = tso.download(symbols=["خودرو","فولاد","وبملت"], j_date=False
 -----------------------------------------------------------------
 
 
-My Telegram Channel: [@AlgoEdge](https://t.me/algorithm_edge)
+My Telegram Channel: [@algorithm_edge](https://t.me/algorithm_edge)
 
 
 در صورت برخورد با هرگونه خطا، ممنون میشم به من اطلاع بدین (sm.sokut@gmail.com)
 
 
 This project on github [tse-option](https://github.com/sm-sokout/tse-option)
+
