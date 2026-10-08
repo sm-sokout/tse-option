@@ -1,190 +1,210 @@
 # tse_option
 
 
-
-این پکیج جهت بررسی و دریافت داده های اختیار معاملات بورس اوراق بهادار تهران و فرابورس ایران ایجاد شده است. 
-
-برخی از توابع این پروژه،از ماژول های [finpy_tse](https://github.com/ARahimiQuant/finpy-tse) و [tsemodule5](https://github.com/python4financeacademy/tsemodule5) اقتباس شده اند. همچنین باید تشکر کنم از آقای حمید ماهان که برای رفع مشکل دریافت دیتای فرابورس کمک کردند..
-
-- کانال تلگرام: [@algorithm_edge](https://t.me/algorithm_edge)
-
-----------------------------------------------
-
-**توجه****: کلیه خروجی این ماژول از جمله قیمت گذاری و محاسبه تلاطم ضمنی و ... به جهت تسهیل در تصمیم گیری سرمایه گذاران است و هیچگونه پیشنهادی برای خرید یا فروش آن محسوب نمی شود. لذا تمامی عواقب سرمایه گذاری به عهده شخص سرمایه گذار است و توسعه دهنده هیچ مسئولیتی در قبال زیان های احتمالی ندارند.** 
-
-----------------------------------------------
+English | [فارسی](README.fa.md)
 
 
-**تغییرات نسخه جدید(0.1.1.0)**: 
+`tse_option` is a Python package for retrieving and analyzing options
+data from the Tehran Stock Exchange (TSE) and Iran Fara Bourse (IFB).
+
+Parts of this project build on functions adapted from
+[`finpy_tse`](https://github.com/ARahimiQuant/finpy-tse) and
+[`tsemodule5`](https://github.com/python4financeacademy/tsemodule5).
 
 
-1- امکان دانلود تاریخچه قیمت سهام و اوراق اختیار معامله
+-   Telegram channel: [@algorithm_edge](https://t.me/algorithm_edge)
 
+------------------------------------------------------------------------
 
-2- رفع برخی مشکلات
+> **Disclaimer:** This package, including its pricing and
+> implied-volatility calculations, is provided for analytical and
+> decision-support purposes only. Nothing produced by the package should
+> be construed as investment advice or a recommendation to buy or sell
+> any security or derivative. Users are solely responsible for their
+> investment decisions and any resulting gains or losses. The developer
+> accepts no liability for losses arising from the use of this package.
 
+------------------------------------------------------------------------
 
-----------------------------------------------
+## Release Notes
 
+### Version 0.1.1.0
 
-**تغییرات نسخه جدید(0.1.2.1)**: 
+1.  Added support for downloading historical price data for stocks and
+    option contracts.
+2.  Fixed several issues.
 
+### Version 0.1.2.1
 
-1- بروزرسانی لینک های tsetmc
+1.  Updated TSETMC links.
+2.  Added support for downloading historical price data for multiple
+    symbols in a single request, similar to `yfinance`.
+3.  Updated links to `tse.ir`.
 
+### Version 0.1.2.3
 
-2- امکان دریافت همزمان تاریخچه قیمت چندین نماد(مانند yfinance)
+1.  Fixed the risk-free rate calculation based on the average rate of
+    Iranian Treasury bills (Akhza).
+2.  General improvements and bug fixes.
 
+### Version 0.1.3.0
 
-3- بروزرسانی لینک سایت tse.ir
+1.  Added support for retrieving put-option data from the Tehran Stock
+    Exchange.
+2.  Fixed issues with retrieving data from Iran Fara Bourse.
+3.  Added a margin requirement column.
 
+### Version 0.1.4.0
 
-----------------------------------------------
+1.  Fixed an issue that prevented options data from being retrieved.
+2.  Added open interest data for each option contract.
+3.  Added a manual fallback for the risk-free rate when automatic
+    calculation fails.
 
+------------------------------------------------------------------------
 
-**تغییرات نسخه جدید(0.1.2.3)**: 
+### Upgrade
 
-
-1- رفع مشکل محاسبه نرخ بهره بدون ریسک (میانگین نرخ اخزا)
-
-
-2- بهبود کلی و رفع برخی مشکلات
-
-
-----------------------------------------------
-
-
-**تغییرات نسخه جدید(0.1.3.0)**: 
-
-
-1- امکان دریافت دیتای پوت آپشن های بورس تهران
-
-
-2- رفع مشکل دریافت دیتای فرابورس
-
-
-3- اضافه شدن ستون وجه تضمین
-
-
-----------------------------------------------
-
-
-**تغییرات نسخه جدید(0.1.4.0)**: 
-
-
-1- رفع مشکل عدم دریافت دیتای اختیار معاملات
-
-2- دریافت دیتای موقعیت های باز هر اختیار معامله
-
-3- در صورت خطا در محاسبه نرخ بهره، این مقدار بصورت دستی از کاربر گرفته می شود
-
-
-----------------------------------------------
-
-
-### بروزرسانی
-```python
+``` bash
 pip install tse-option --upgrade
 ```
 
-### نصب
-```python
+### Installation
+
+``` bash
 pip install tse-option
 ```
 
-### فراخوانی
-```python
+### Import
+
+``` python
 import tse_option as tso
 ```
 
------------------------------------------------------------------
+------------------------------------------------------------------------
 
+#### Retrieve the Option Chain for an Underlying Asset
 
-#### زنجیره قراردادهای یک سهم
-```python
+``` python
 df = tso.option_chain(symbol="خودرو", trading_days=100, IV=False, leverage=True, P_BSM=False, sort="Maturity")
 ```
 
-| arguments   |    توضیحات |
-|:------------|:-----------|
-| symbol      | نماد دارایی پایه |
-| trading_days| تعداد روز معاملاتی برای محاسبه تلاطم تاریخی |
-| IV          | تلاطم ضمنی (Implied Volatility) |
-| leverage       | محاسبه اهرم |
-| P_BSM       | نسبت قیمت بازار به BSM |
-| sort        | نحوه مرتب سازی |
+  -----------------------------------------------------------------------
+  Argument                       Description
+  ------------------------------ ----------------------------------------
+  `symbol`                       Underlying asset symbol
 
+  `trading_days`                 Number of trading days used to calculate
+                                 historical volatility
 
-(می توان از متغیرهایی چون زمان باقی مانده تا سررسید(Maturity)،قیمت اعمال(Strike Price) و موقعیت های باز(Open Interests) برای مرتب سازی استفاده کرد)
+  `IV`                           Whether to calculate implied volatility
 
+  `leverage`                     Whether to calculate leverage
 
------------------------------------------------------------------
+  `P_BSM`                        Whether to calculate the ratio of the
+                                 market price to the Black-Scholes-Merton
+                                 (BSM) price
 
-#### اختیار خرید
-```python
+  `sort`                         Field used to sort the results
+  -----------------------------------------------------------------------
+
+The results can be sorted by fields such as time to maturity
+(`Maturity`), strike price (`Strike Price`), or open interest
+(`Open Interests`).
+
+------------------------------------------------------------------------
+
+#### Retrieve Call Option Data
+
+``` python
 df = tso.call(option_symbol="ضخود1130", trading_days=100, IV=False, leverage=True, P_BSM=False)
 ```
 
+  -----------------------------------------------------------------------
+  Argument                       Description
+  ------------------------------ ----------------------------------------
+  `option_symbol`                Call option symbol
 
-| arguments   |    توضیحات |
-|:------------|:-----------|
-| option_symbol      | نماد اختیار خرید |
-| trading_days| تعداد روز معاملاتی برای محاسبه تلاطم تاریخی |
-| IV          | تلاطم ضمنی (Implied Volatility) |
-| leverage       | محاسبه اهرم |
-| P_BSM       | نسبت قیمت بازار به BSM |
+  `trading_days`                 Number of trading days used to calculate
+                                 historical volatility
 
+  `IV`                           Whether to calculate implied volatility
 
------------------------------------------------------------------
+  `leverage`                     Whether to calculate leverage
 
-#### اختیار فروش
-```python
+  `P_BSM`                        Whether to calculate the ratio of the
+                                 market price to the Black-Scholes-Merton
+                                 (BSM) price
+  -----------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+#### Retrieve Put Option Data
+
+``` python
 df = tso.put(option_symbol="طخود1138", trading_days=100, IV=False, leverage=True, P_BSM=False)
 ```
 
+  -----------------------------------------------------------------------
+  Argument                       Description
+  ------------------------------ ----------------------------------------
+  `option_symbol`                Put option symbol
 
-| arguments   |    توضیحات |
-|:------------|:-----------|
-| option_symbol      | نماد اختیار فروش |
-| trading_days| تعداد روز معاملاتی برای محاسبه تلاطم تاریخی |
-| IV          | تلاطم ضمنی (Implied Volatility) |
-| leverage       | محاسبه اهرم |
-| P_BSM       | نسبت قیمت بازار به BSM |
+  `trading_days`                 Number of trading days used to calculate
+                                 historical volatility
 
+  `IV`                           Whether to calculate implied volatility
 
------------------------------------------------------------------
+  `leverage`                     Whether to calculate leverage
 
-#### دریافت تاریخچه قیمت
-```python
+  `P_BSM`                        Whether to calculate the ratio of the
+                                 market price to the Black-Scholes-Merton
+                                 (BSM) price
+  -----------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
+#### Download Historical Price Data
+
+For a single symbol:
+
+``` python
 df = tso.download("خودرو", j_date=True, start="1402-01-01", end=None, adjust_price=True, drop_unadjusted=False)
 ```
-```python
+
+For multiple symbols:
+
+``` python
 df = tso.download(symbols=["خودرو","فولاد","وبملت"], j_date=False, start="2023-01-01", end=None, adjust_price=False, drop_unadjusted=False)
 ```
 
-| arguments   |    توضیحات |
-|:------------|:-----------|
-| symbols      | نماد یا نمادها |
-| j_date| تاریخ جلالی |
-| start          | تاریخ شروع |
-| end       | تاریخ پایان |
-| adjust_price       | قیمت تعدیل شده |
-| drop_unadjusted       | حذف قیمت های تعدیل نشده |
+  -----------------------------------------------------------------------
+  Argument                       Description
+  ------------------------------ ----------------------------------------
+  `symbols`                      A symbol or a list of symbols
 
+  `j_date`                       Whether to use Jalali dates
 
------------------------------------------------------------------
+  `start`                        Start date
 
+  `end`                          End date
 
-برای مشاهده مثال های بیشتر [اینجا](https://github.com/sm-sokout/tse-option/blob/master/Example/Example.ipynb) کلیک کنید.
+  `adjust_price`                 Whether to adjust historical prices
 
------------------------------------------------------------------
+  `drop_unadjusted`              Whether to remove unadjusted prices from
+                                 the output
+  -----------------------------------------------------------------------
 
+------------------------------------------------------------------------
 
-My Telegram Channel: [@algorithm_edge](https://t.me/algorithm_edge)
+For additional examples, see the [example
+notebook](https://github.com/sm-sokout/tse-option/blob/master/Example/Example.ipynb).
 
+------------------------------------------------------------------------
 
-در صورت برخورد با هرگونه خطا، ممنون میشم به من اطلاع بدین (sm.sokut@gmail.com)
+**Telegram:** [@algorithm_edge](https://t.me/algorithm_edge)
 
+If you encounter a bug or any unexpected behavior, please feel free to
+report it at `sm.sokut@gmail.com`.
 
-This project on github [tse-option](https://github.com/sm-sokout/tse-option)
-
+**GitHub:** [tse-option](https://github.com/sm-sokout/tse-option)
